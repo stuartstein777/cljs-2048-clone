@@ -39,36 +39,6 @@
           (recur (+ 2 i) (conj res (* 2 (nth row i))))
           (recur (inc i) (conj res (nth row i))))))))
 
-(defn collapse-left [board]
-  (->> board
-       (mapv slide-left)
-       (mapv merge-vector)
-       (mapv (partial pad-left 4))))
-
-(defn collapse-right [board]
-  (->> board
-       (mapv reverse)
-       (mapv slide-left)
-       (mapv merge-vector)
-       (mapv (partial pad-left 4))
-       (mapv (comp vec reverse))))
-
-(defn collapse-down [board]
-  (->> board
-       (rotate-board)
-       (collapse-right)
-       (rotate-board)
-       (rotate-board)
-       (rotate-board)))
-
-(defn collapse-up [board]
-  (->> board
-       (rotate-board)
-       (collapse-left)
-       (rotate-board)
-       (rotate-board)
-       (rotate-board)))
-
 (defn update-2d-vector [v coord value]
   (assoc-in v coord value))
 
@@ -82,6 +52,47 @@
         empty-cells   (get-empty-cells board)
         random-cell   (first (shuffle empty-cells))]
     (update-2d-vector board random-cell number)))
+
+(defn add-random-if-moved [board new-board]
+  (if (= new-board board)
+    board
+    (->> new-board
+         (add-random-value [2 2 2 2 2 2 2 2 4])
+         (add-random-value [2 2 2 2 2 2 2 2 4]))))
+
+(defn collapse-left [board]
+  (->> board
+       (mapv slide-left)
+       (mapv merge-vector)
+       (mapv (partial pad-left 4))
+       (add-random-if-moved board)))
+
+(defn collapse-right [board]
+  (->> board
+       (mapv reverse)
+       (mapv slide-left)
+       (mapv merge-vector)
+       (mapv (partial pad-left 4))
+       (mapv (comp vec reverse))
+       (add-random-if-moved board)))
+
+(defn collapse-down [board]
+  (->> board
+       (rotate-board)
+       (collapse-right)
+       (rotate-board)
+       (rotate-board)
+       (rotate-board)
+       (add-random-if-moved board)))
+  
+(defn collapse-up [board]
+  (->> board
+       (rotate-board)
+       (collapse-left)
+       (rotate-board)
+       (rotate-board)
+       (rotate-board)
+       (add-random-if-moved board)))
 
 (defn generate-board []
   (let [board [[0 0 0 0] [0 0 0 0] [0 0 0 0] [0 0 0 0]]]
