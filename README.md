@@ -1,6 +1,6 @@
-# Mastermind
+# 2048 Clone
 
-It's Mastermind in cljs
+Clone of the game 2048 in CLJS
 
-Play here https://stuartstein777.github.io/mastermind/index.html
+Play here https://stuartstein777.github.io/2048/index.html
 
