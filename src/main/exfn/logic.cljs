@@ -51,7 +51,9 @@
   (let [number        (first (shuffle possibilities))
         empty-cells   (get-empty-cells board)
         random-cell   (first (shuffle empty-cells))]
-    (update-2d-vector board random-cell number)))
+    (if (empty? empty-cells)
+      board
+      (update-2d-vector board random-cell number))))
 
 (defn add-random-if-moved [board new-board]
   (if (= new-board board)
@@ -60,39 +62,45 @@
          (add-random-value [2 2 2 2 2 2 2 2 4])
          (add-random-value [2 2 2 2 2 2 2 2 4]))))
 
+(defn debug [d]
+  (prn d)
+  d)
+
 (defn collapse-left [board]
+  (prn "collapsing left")
   (->> board
        (mapv slide-left)
        (mapv merge-vector)
-       (mapv (partial pad-left 4))
-       (add-random-if-moved board)))
+       (mapv (partial pad-left 4))))
 
 (defn collapse-right [board]
+  (prn "collapsing right")
   (->> board
        (mapv reverse)
        (mapv slide-left)
        (mapv merge-vector)
        (mapv (partial pad-left 4))
-       (mapv (comp vec reverse))
-       (add-random-if-moved board)))
+       (mapv (comp vec reverse))))
 
 (defn collapse-down [board]
+  (prn "collapsing down")
   (->> board
        (rotate-board)
        (collapse-right)
        (rotate-board)
        (rotate-board)
        (rotate-board)
-       (add-random-if-moved board)))
+       (vec)))
   
 (defn collapse-up [board]
+  (prn "collapsing up")
   (->> board
        (rotate-board)
        (collapse-left)
        (rotate-board)
        (rotate-board)
        (rotate-board)
-       (add-random-if-moved board)))
+       (vec)))
 
 (defn generate-board []
   (let [board [[0 0 0 0] [0 0 0 0] [0 0 0 0] [0 0 0 0]]]
@@ -110,23 +118,34 @@
   
 (comment
   
-  (let [board [[ 4  8  2  4]
-               [ 8  4 16  8]
-               [ 4 64  2 32]
-               [16  2  8 32]]]
-    #_(collapse-left board)
-    #_(collapse-right board)
-    (collapse-down board)
-    #_(collapse-up board)
-    #_(add-random-value [2 2 2 2 2 2 2 2 4] board)
-    #_(generate-board)
-    #_(game-over? board)
+  (let [board [[32  64   8   4]
+               [ 2   4  16   8]
+               [ 4   8  64   4]
+               [16   2  32  16]]]
+    (->> board
+         #_collapse-left
+         #_collapse-right
+         #_collapse-down
+         #_collapse-up
+         (add-random-value [2 2 2 2 2 2 2 2 4])
+         (add-random-value [2 2 2 2 2 2 2 2 4]))
+    
+
     )
   
-  [[0 4 0 4]
-   [0 4 0 0]
-   [4 2 2 2]
-   [0 2 4 4]]
+  [[0 4 0 4]   ;; 8
+   [0 4 0 0]   ;; 4
+   [4 2 2 2]   ;; 10
+   [0 2 4 4]]  ;; 10 = 32
+  
+  ;; slide down
+  
+  [[0 0 0 4]  ;; 4
+   [0 0 0 4]  ;; 4
+   [0 8 2 2]  ;; 12
+   [4 4 4 4]] ;; 16 = 36
+  
+  ;; score 8 + 4 = 12
 
   ;; left
   ;; [8 0 0 0]

@@ -7,7 +7,7 @@
    (:board db)))
 
 (rf/reg-sub
- :is-game-over?
+ :game-over?
  (fn [db _]
-   (:is-game-over? db)))
+   (:game-over? db)))
 

@@ -10,6 +10,9 @@
             [goog.history.EventType :as EventType]
             [goog.string.format]))
 
+(defn setup-key-capture []
+  (rf/dispatch-sync [::rp/add-keyboard-event-listener "keyup" :clear-on-success-event-match true]))
+
 ;; -- UI Logic --------------------------------------------------------------------
 
 (defn get-cell-color [v]
@@ -27,12 +30,11 @@
     (= 2048 v) "#EDC22E"
     :else "rgba(238,228,218,.35)"))
 
-;; https://github.com/gadfly361/re-pressed
-
 ;; -- App -------------------------------------------------------------------------
 
 (defn app []
-  (let [board @(rf/subscribe [:board])]
+  (let [board @(rf/subscribe [:board])
+        game-over? @(rf/subscribe [:game-over?])]
       [:div.container
        [:div.row
         [:div.col.col-lg-8
@@ -49,15 +51,31 @@
           " other projects"]]]
        [:div.row
         [:div.board
-         (for [row board]
+         (for [[row key] (map vector board (range))]
            [:div.row
-            (for [cell row]
+            {:key (str "row-" key)}
+            (for [[cell keyc] (map vector row (range))]
               [:div
-               {:class (str "cell-" cell)}
+               {:class (str "cell-" cell)
+                :key  (str "div-row-" key "-cell-" keyc)}
                [:div.cell {:style {:background-color (get-cell-color cell)
-                                   :font-size "50px"}}
+                                   :font-size "50px"}
+                           :key  (str "cell-row-" row "-cell-" cell)}
                 (when (not= 0 cell)
-                  cell)]])])]]]))
+                  cell)]])])]]
+       [:div.row
+        [:div.col.col-lg-4
+         [:btn.btn.btn-primary
+          {:on-click #(rf/dispatch [:restart])
+           :style {:margin-top 20
+                   :width    100}}
+          "Restart"]]
+        [:div.col.col-lg-8
+         {:style {:display (if game-over? :block :none)}}
+         #_{:style {:display (if game-over?
+                             :block
+                             :none)}}
+         [:h1 "Game Over"]]]]))
 
 ;; -- After-Load --------------------------------------------------------------------
 ;; Do this after the page has loaded.
@@ -69,29 +87,23 @@
 
 (defn ^:export init []
   (start)
-  (rf/dispatch-sync [::rp/add-keyboard-event-listener "keydown"])
   (rf/dispatch
-   [::rp/set-keydown-rules
-    {:event-keys [
-                   [[:slide-left] ;; left arrow or a
-                    [{:keyCode 37}]
-                    [{:keyCode 65}]]
-                  
-                   [[:slide-right] ;; right arrow or d
-                    [{:keyCode 39}]
-                    [{:keyCode 68}]]
-                  
+   [::rp/set-keyup-rules
+    {:event-keys [[[:slide-left] ;; left arrow or a
+                   [{:keyCode 37}]]
+  
+                  [[:slide-right] ;; right arrow or d
+                   [{:keyCode 39}]]
+  
                   [[:slide-down] ;; down arrow or s
-                   [{:keyCode 40}]
-                   [{:keyCode 83}]]
-
+                   [{:keyCode 40}]]
+  
                   [[:slide-up] ;; up arrow or w
-                   [{:keyCode 38}]
-                   [{:keyCode 87}]]]
+                   [{:keyCode 38}]]]
   
      :clear-keys [;; escape
                   [{:keyCode 27}]
-                      ;; ctrl+g
+                          ;; ctrl+g
                   [{:keyCode 71
                     :ctrlKey true}]]
   
@@ -101,7 +113,7 @@
   
      :always-listen-keys [;; enter
                           {:keyCode 13}]}])
-)
+  (setup-key-capture))
 
 ; dispatch the event which will create the initial state. 
 (defonce initialize (rf/dispatch-sync [:initialize]))
