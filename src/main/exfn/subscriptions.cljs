@@ -11,3 +11,7 @@
  (fn [db _]
    (:game-over? db)))
 
+(rf/reg-sub
+ :score
+ (fn [db _]
+   (:score db)))

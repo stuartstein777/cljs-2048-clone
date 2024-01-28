@@ -34,7 +34,8 @@
 
 (defn app []
   (let [board @(rf/subscribe [:board])
-        game-over? @(rf/subscribe [:game-over?])]
+        game-over? @(rf/subscribe [:game-over?])
+        score @(rf/subscribe [:score])]
       [:div.container
        [:div.row
         [:div.col.col-lg-8
@@ -49,6 +50,9 @@
          [:a {:href  "https://stuartstein777.github.io/"
               :style {:text-decoration :none}}
           " other projects"]]]
+       [:div.row
+        [:div.col.col-lg-4
+         [:h3 (str "Score " score)]]]
        [:div.row
         [:div.board
          (for [[row key] (map vector board (range))]

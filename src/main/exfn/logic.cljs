@@ -28,6 +28,30 @@
 (defn slide-left [row]
   (vec (remove zero? row)))
 
+;; row [2 2 0 0]                {0 2, 2 2}
+;;  -> [4 0 0 0] - points = 4   {0 3, 4, 1}
+
+;; row [2 4 2 2]                {2 3, 4 1}
+;;  -> [2 4 4 0] - points = 4   {0 1, 2, 1, 4 2}
+
+;; get frequency of result
+;; get frequency of original
+;; score += items that are greater count than original, sum of keys
+(defn score-row [row new-row]
+  (let [original (frequencies (flatten row))
+        updated  (frequencies (flatten new-row))
+        higher   (->> updated
+                      (filter #(> (second %) (get original (first %))))
+                      (filter #(> (first %) 1)))]
+    (reduce (fn [acc [k v]] 
+              (prn "k: " k ", v: " v)
+              (let [ov (get original k 0)]
+                (+ acc (* k (- v ov)))))
+            0 higher)))
+
+(defn score [board new-board]
+  (reduce + (map (fn [row new-row] (score-row row new-row)) board new-board)))
+
 (defn merge-vector [row]
   (loop [i 0
          res []]
@@ -67,14 +91,12 @@
   d)
 
 (defn collapse-left [board]
-  (prn "collapsing left")
   (->> board
        (mapv slide-left)
        (mapv merge-vector)
        (mapv (partial pad-left 4))))
 
 (defn collapse-right [board]
-  (prn "collapsing right")
   (->> board
        (mapv reverse)
        (mapv slide-left)
@@ -83,7 +105,6 @@
        (mapv (comp vec reverse))))
 
 (defn collapse-down [board]
-  (prn "collapsing down")
   (->> board
        (rotate-board)
        (collapse-right)
@@ -93,7 +114,6 @@
        (vec)))
   
 (defn collapse-up [board]
-  (prn "collapsing up")
   (->> board
        (rotate-board)
        (collapse-left)
@@ -170,6 +190,18 @@
   ;; [0 4 4 2]
   ;; [0 0 0 4]
   ;; [0 0 0 0]
+
+  [[2  0  0  0]
+   [2  0  0  2]
+   [8  2  4  0]
+   [16 8  4  0]]    ;; 86
+  
+  ;; slide down
+  [[0  0  0  0]
+   [4  0  0  0]
+   [8  2  0  0]
+   [16 8  8  2]]    ;; 98
+  
     )
   
   

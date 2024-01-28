@@ -13,45 +13,54 @@
  (fn [db _]
    (-> db
        (assoc :board (lgc/generate-board))
-       (assoc :game-over? false))))
+       (assoc :game-over? false)
+       (assoc :score 0))))
 
 (defn collapse [f board]
   (->> board
-       (f)
-       (lgc/add-random-if-moved board)))
+       (f)))
 
 (rf/reg-event-db
  :slide-up
  (fn [db _]
-   (prn "slide left")
-   (let [new-board (collapse lgc/collapse-left (:board db))]
+   (let [new-board (collapse lgc/collapse-left (:board db))
+         turn-score (lgc/score (:board db) new-board)
+         board-with-random (lgc/add-random-if-moved (:board db) new-board)]
      (-> db
-         (assoc :board new-board)
-         (assoc :game-over? (lgc/game-over? new-board))))))
+         (assoc :board board-with-random)
+         (assoc :game-over? (lgc/game-over? new-board))
+         (update :score + turn-score)))))
 
 (rf/reg-event-db
  :slide-down
  (fn [db _]
-   (prn "slide right")
-   (let [new-board (collapse lgc/collapse-right (:board db))]
+   (let [new-board (collapse lgc/collapse-right (:board db))
+         turn-score (lgc/score (:board db) new-board)
+         board-with-random (lgc/add-random-if-moved (:board db) new-board)]
      (-> db
-         (assoc :board new-board)
-         (assoc :game-over? (lgc/game-over? new-board))))))
+         (assoc :board board-with-random)
+         (assoc :game-over? (lgc/game-over? new-board))
+         (update :score + turn-score)))))
 
 (rf/reg-event-db
  :slide-right
  (fn [db _]
-   (prn "slide down")
-   (let [new-board (collapse lgc/collapse-down (:board db))]
+   (let [new-board (collapse lgc/collapse-down (:board db))
+         turn-score (lgc/score (:board db) new-board)
+         board-with-random (lgc/add-random-if-moved (:board db) new-board)]
      (-> db
-         (assoc :board new-board)
-         (assoc :game-over? (lgc/game-over? new-board))))))
+         (assoc :board board-with-random)
+         (assoc :game-over? (lgc/game-over? new-board))
+         (update :score + turn-score)))))
 
 (rf/reg-event-db
  :slide-left
  (fn [db _]
-   (let [new-board (collapse lgc/collapse-up (:board db))]
+   (let [new-board (collapse lgc/collapse-up (:board db))
+         turn-score (lgc/score (:board db) new-board)
+         board-with-random (lgc/add-random-if-moved (:board db) new-board)]
      (-> db
-         (assoc :board new-board)
-         (assoc :game-over? (lgc/game-over? new-board))))))
+         (assoc :board board-with-random)
+         (assoc :game-over? (lgc/game-over? new-board))
+         (update :score + turn-score)))))
 
